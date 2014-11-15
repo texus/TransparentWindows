@@ -6,7 +6,7 @@ It loads an image with transparent parts, uses this image to set the shape of th
 
 Currently the code only works on Windows and Linux, but I hope to add OS X in the future.
 
-Currently the windows are only made non-rectangular and not semi-transparent yet.
+Currently the transparency only works on Windows, it is not yet implemented for Linux.
 
 Feel free to send pull requests to improve the code.
 
