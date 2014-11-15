@@ -19,4 +19,4 @@ On Linux:
 
 On Windows:
 
-    You should do is link to sfml the way you do it for your own programs.
+    You should link to sfml the way you do it for your own programs.
