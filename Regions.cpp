@@ -91,7 +91,7 @@
 int main()
 {
     // Change this to the wanted transparency
-    const unsigned char opacity = 150;
+    const unsigned char opacity = 200;
 
     // Load an image with transparent parts that will define the shape of the window
     sf::Image backgroundImage;
