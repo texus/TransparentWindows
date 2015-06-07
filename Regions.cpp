@@ -3,7 +3,7 @@
 #if defined (SFML_SYSTEM_WINDOWS)
     #include <windows.h>
 
-    bool setTransparent(HWND hWnd, const sf::Image& image, unsigned char alpha)
+    bool setShape(HWND hWnd, const sf::Image& image)
     {
         const sf::Uint8* pixelData = image.getPixelsPtr();
         HRGN hRegion = CreateRectRgn(0, 0, image.getSize().x, image.getSize().y);
@@ -27,29 +27,24 @@
 
         SetWindowRgn(hWnd, hRegion, true);
         DeleteObject(hRegion);
+        return true;
+    }
 
-        // Set the transparency
+    bool setTransparency(HWND hWnd, unsigned char alpha)
+    {
         SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
         SetLayeredWindowAttributes(hWnd, 0, alpha, LWA_ALPHA);
         return true;
     }
+
 #elif defined (SFML_SYSTEM_LINUX)
     #include <X11/Xatom.h>
     #include <X11/extensions/shape.h>
 
-    bool setTransparent(Window wnd, const sf::Image& image, unsigned char alpha)
+    bool setShape(Window wnd, const sf::Image& image)
     {
         const sf::Uint8* pixelData = image.getPixelsPtr();
         Display* display = XOpenDisplay(NULL);
-
-        // Set the transparency
-        if (alpha != 255)
-        {
-            unsigned long opacity = (0xffffffff / 0xff) * alpha;
-            Atom property = XInternAtom(display, "_NET_WM_WINDOW_OPACITY", false);
-            if (property != None)
-                XChangeProperty(display, wnd, property, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&opacity, 1);
-        }
 
         // Try to set the window shape
         int event_base;
@@ -78,14 +73,34 @@
             XFlush(display);
             return true;
         }
-        else // Shape extension is not supported, window will not be of requested shape
+    }
+
+    bool setTransparency(Window wnd, unsigned char alpha)
+    {
+        Display* display = XOpenDisplay(NULL);
+        unsigned long opacity = (0xffffffff / 0xff) * alpha;
+        Atom property = XInternAtom(display, "_NET_WM_WINDOW_OPACITY", false);
+        if (property != None)
         {
+            XChangeProperty(display, wnd, property, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&opacity, 1);
             XFlush(display);
-            return false;
+            return true;
         }
+        else
+            return false;
     }
 
     #undef None // None conflicts with SFML
+#else
+    bool setShape(sf::WindowHandle handle, const sf::Image& image)
+    {
+        return false;
+    }
+
+    bool setTransparency(sf::WindowHandle handle, unsigned char alpha)
+    {
+        return false;
+    }
 #endif
 
 int main()
@@ -102,10 +117,9 @@ int main()
     window.setPosition(sf::Vector2i((sf::VideoMode::getDesktopMode().width - backgroundImage.getSize().x) / 2,
                                     (sf::VideoMode::getDesktopMode().height - backgroundImage.getSize().y) / 2));
 
-    if (!setTransparent(window.getSystemHandle(), backgroundImage, opacity))
-    {
-        // You can execute some code here on unsupported OS or when linux display doesn't support shape extention
-    }
+    // These functions return false on an unsupported OS or when it is not supported on linux (e.g. display doesn't support shape extention)
+    setShape(window.getSystemHandle(), backgroundImage);
+    setTransparency(window.getSystemHandle(), opacity);
 
     // We will also draw the image on the window instead of just showing an empty window with the wanted shape
     sf::Texture backgroundTexture;
