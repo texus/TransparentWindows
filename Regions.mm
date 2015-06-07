@@ -1,6 +1,13 @@
 #include <SFML/Graphics.hpp>
 #import <Cocoa/Cocoa.h>
 
+@implementation NSOpenGLView (Opaque)
+-(BOOL)isOpaque
+{
+    return NO;
+}
+@end
+
 bool setShape(sf::WindowHandle handle, const sf::Image& image)
 {
     NSWindow* wnd = (NSWindow*)handle;

@@ -20,8 +20,6 @@ Mac OS X:
 
     clang++ Regions.cpp Regions.mm -framework sfml-graphics -framework sfml-window -framework sfml-system -framework Cocoa
 
-    In order to make the window non-rectangular a change inside SFML is needed. An isOpaque function which just returns NO has to be added to SFOpenGLView.
-
 
 Windows:
 
