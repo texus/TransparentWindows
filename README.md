@@ -13,14 +13,14 @@ Feel free to send pull requests to improve the code.
 
 Linux:
 
-    g++ Regions.cpp -lsfml-graphics -lsfml-window -lsfml-system -lX11 -lXext
+    g++ Transparent.cpp -lsfml-graphics -lsfml-window -lsfml-system -lX11 -lXext
 
 
 Mac OS X:
 
-    clang++ Regions.cpp Regions.mm -framework sfml-graphics -framework sfml-window -framework sfml-system -framework Cocoa
+    clang++ Transparent.cpp Transparent.mm -framework sfml-graphics -framework sfml-window -framework sfml-system -framework Cocoa
 
 
 Windows:
 
-    No special libraries are needed for the transparency. You should just compile Regions.cpp and link to sfml the way you do it for your own programs.
+    No special libraries are needed for the transparency. You should just compile Transparent.cpp and link to sfml the way you do it for your own programs.
