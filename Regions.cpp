@@ -91,6 +91,9 @@
     }
 
     #undef None // None conflicts with SFML
+#elif defined (SFML_SYSTEM_MACOS)
+    bool setShape(sf::WindowHandle handle, const sf::Image& image);
+    bool setTransparency(sf::WindowHandle handle, unsigned char alpha);
 #else
     bool setShape(sf::WindowHandle handle, const sf::Image& image)
     {
@@ -106,7 +109,7 @@
 int main()
 {
     // Change this to the wanted transparency
-    const unsigned char opacity = 200;
+    const unsigned char opacity = 185;
 
     // Load an image with transparent parts that will define the shape of the window
     sf::Image backgroundImage;
@@ -137,7 +140,7 @@ int main()
                 window.close();
         }
 
-        window.clear();
+        window.clear(sf::Color::Transparent);
         window.draw(backgroundSprite);
         window.display();
     }
