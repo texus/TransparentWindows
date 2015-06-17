@@ -65,11 +65,14 @@
             }
 
             XShapeCombineMask(display, wnd, ShapeBounding, 0, 0, pixmap, ShapeSet);
-            XFreePixmap(display, pixmap);
             XFreeGC(display, gc);
+            XFreePixmap(display, pixmap);
             XFlush(display);
+            XCloseDisplay(display);
             return true;
         }
+
+        XCloseDisplay(display);
     }
 
     bool setTransparency(Window wnd, unsigned char alpha)
@@ -81,10 +84,14 @@
         {
             XChangeProperty(display, wnd, property, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&opacity, 1);
             XFlush(display);
+            XCloseDisplay(display);
             return true;
         }
         else
+        {
+            XCloseDisplay(display);
             return false;
+        }
     }
 
     #undef None // None conflicts with SFML
