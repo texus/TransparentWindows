@@ -15,12 +15,9 @@
             {
                 if (pixelData[y * image.getSize().x * 4 + x * 4 + 3] == 0)
                 {
-                    HRGN hRegionDest = CreateRectRgn(0, 0, 1, 1);
                     HRGN hRegionPixel = CreateRectRgn(x, y, x+1, y+1);
-                    CombineRgn(hRegionDest, hRegion, hRegionPixel, RGN_XOR);
-                    DeleteObject(hRegion);
+                    CombineRgn(hRegion, hRegion, hRegionPixel, RGN_XOR);
                     DeleteObject(hRegionPixel);
-                    hRegion = hRegionDest;
                 }
             }
         }
