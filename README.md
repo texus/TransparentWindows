@@ -24,3 +24,14 @@ Mac OS X:
 Windows:
 
     No special libraries are needed for the transparency. You should just compile Transparent.cpp and link to sfml the way you do it for your own programs.
+
+
+### Translucent windows
+
+This code works by using a fully opaque image and then applying an alpha value over all the visible pixels, it does not support per-pixel alpha. If you want to use a transparent image and set the alpha values of the window like in the image then check the following resources:
+
+- Windows: I wrote an [implementation for Windows](https://gist.github.com/texus/31676aba4ca774b1298e1e15133b8141) using the UpdateLayeredWindow function.
+
+- Linux: I found [this gist](https://gist.github.com/je-so/903479) which can be changed to use per-pixel alpha. Adapting it to use SFML only worked when creating the sf::RenderWindow from the created Xlib Window, but not the other way around. If you manage to get it working on linux with a window created by SFML then please let me know.
+
+- macOS: The code in this repository already supports translucent windows for macOS! You can just replace the image with a transparent one and it will work.
