@@ -28,7 +28,7 @@ Windows:
 
 ### Translucent windows
 
-This code works by using a fully opaque image and then applying an alpha value over all the visible pixels, it does not support per-pixel alpha. If you want to use a transparent image and set the alpha values of the window like in the image then check the following resources:
+This code in this project works by using a fully opaque image and then applying an alpha value over all the visible pixels, it does not support per-pixel alpha. If you want to use a transparent image and set the alpha values of the window like in the image then check the following resources:
 
 - Windows: I wrote an [implementation for Windows](https://gist.github.com/texus/31676aba4ca774b1298e1e15133b8141) using the UpdateLayeredWindow function.
 

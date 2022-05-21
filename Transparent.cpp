@@ -6,19 +6,42 @@
     bool setShape(HWND hWnd, const sf::Image& image)
     {
         const sf::Uint8* pixelData = image.getPixelsPtr();
+
+        // Create a region with the size of the entire window
         HRGN hRegion = CreateRectRgn(0, 0, image.getSize().x, image.getSize().y);
 
-        // Determine the visible region
+        // Loop over the pixels in the image and for each pixel where the alpha component equals 0,
+        // we will remove that pixel from the region.
+        // As an optimization, we will combine adjacent transparent pixels on the same row and
+        // remove them together, instead of using "CreateRectRgn(x, y, x+1, y+1)" to define
+        // a region for each transparent pixel individually.
+        bool transparentPixelFound = false;
+        unsigned int rectLeft = 0;
         for (unsigned int y = 0; y < image.getSize().y; y++)
         {
             for (unsigned int x = 0; x < image.getSize().x; x++)
             {
-                if (pixelData[y * image.getSize().x * 4 + x * 4 + 3] == 0)
+                const bool isTransparentPixel = (pixelData[y * image.getSize().x * 4 + x * 4 + 3] == 0);
+                if (isTransparentPixel && !transparentPixelFound)
                 {
-                    HRGN hRegionPixel = CreateRectRgn(x, y, x+1, y+1);
+                    transparentPixelFound = true;
+                    rectLeft = x;
+                }
+                else if (!isTransparentPixel && transparentPixelFound)
+                {
+                    HRGN hRegionPixel = CreateRectRgn(rectLeft, y, x, y+1);
                     CombineRgn(hRegion, hRegion, hRegionPixel, RGN_XOR);
                     DeleteObject(hRegionPixel);
+                    transparentPixelFound = false;
                 }
+            }
+
+            if (transparentPixelFound)
+            {
+                HRGN hRegionPixel = CreateRectRgn(rectLeft, y, image.getSize().x, y+1);
+                CombineRgn(hRegion, hRegion, hRegionPixel, RGN_XOR);
+                DeleteObject(hRegionPixel);
+                transparentPixelFound = false;
             }
         }
 
@@ -40,39 +63,69 @@
 
     bool setShape(Window wnd, const sf::Image& image)
     {
-        const sf::Uint8* pixelData = image.getPixelsPtr();
         Display* display = XOpenDisplay(NULL);
 
-        // Try to set the window shape
+        // Setting the window shape requires the XShape extension
         int event_base;
         int error_base;
-        if (XShapeQueryExtension(display, &event_base, &error_base))
+        if (!XShapeQueryExtension(display, &event_base, &error_base))
         {
-            Pixmap pixmap = XCreatePixmap(display, wnd, image.getSize().x, image.getSize().y, 1);
-            GC gc = XCreateGC(display, pixmap, 0, NULL);
+            XCloseDisplay(display);
+            return false;
+        }
 
-            XSetForeground(display, gc, 1);
-            XFillRectangle(display, pixmap, gc, 0, 0, image.getSize().x, image.getSize().y);
-            XSetForeground(display, gc, 0);
+        const sf::Uint8* pixelData = image.getPixelsPtr();
 
-            for (unsigned int y = 0; y < image.getSize().y; y++)
+        // Create a black and white pixmap that has the size of the window
+        Pixmap pixmap = XCreatePixmap(display, wnd, image.getSize().x, image.getSize().y, 1);
+        GC gc = XCreateGC(display, pixmap, 0, NULL);
+
+        // Make the entire pixmap white
+        XSetForeground(display, gc, 1);
+        XFillRectangle(display, pixmap, gc, 0, 0, image.getSize().x, image.getSize().y);
+
+        // Loop over the pixels in the image and change the color of the pixmap to black
+        // for each pixel where the alpha component equals 0.
+        // As an optimization, we will combine adjacent transparent pixels on the same row and
+        // draw them together, instead of calling "XFillRectangle(display, pixmap, gc, x, y, 1, 1)"
+        // for each transparent pixel individually.
+        XSetForeground(display, gc, 0);
+        bool transparentPixelFound = false;
+        unsigned int rectLeft = 0;
+        for (unsigned int y = 0; y < image.getSize().y; y++)
+        {
+            for (unsigned int x = 0; x < image.getSize().x; x++)
             {
-                for (unsigned int x = 0; x < image.getSize().x; x++)
+                const bool isTransparentPixel = (pixelData[y * image.getSize().x * 4 + x * 4 + 3] == 0);
+                if (isTransparentPixel && !transparentPixelFound)
                 {
-                    if (pixelData[y * image.getSize().x * 4 + x * 4 + 3] == 0)
-                        XFillRectangle(display, pixmap, gc, x, y, 1, 1);
+                    transparentPixelFound = true;
+                    rectLeft = x;
+                }
+                else if (!isTransparentPixel && transparentPixelFound)
+                {
+                    XFillRectangle(display, pixmap, gc, rectLeft, y, x - rectLeft, 1);
+                    transparentPixelFound = false;
                 }
             }
 
-            XShapeCombineMask(display, wnd, ShapeBounding, 0, 0, pixmap, ShapeSet);
-            XFreeGC(display, gc);
-            XFreePixmap(display, pixmap);
-            XFlush(display);
-            XCloseDisplay(display);
-            return true;
+            if (transparentPixelFound)
+            {
+                XFillRectangle(display, pixmap, gc, rectLeft, y, image.getSize().x - rectLeft, 1);
+                transparentPixelFound = false;
+            }
         }
 
+        // Use the black and white pixmap to define the shape of the window. All pixels that are
+        // white will be kept, while all black pixels will be clipped from the window.
+        XShapeCombineMask(display, wnd, ShapeBounding, 0, 0, pixmap, ShapeSet);
+
+        // Free resources
+        XFreeGC(display, gc);
+        XFreePixmap(display, pixmap);
+        XFlush(display);
         XCloseDisplay(display);
+        return true;
     }
 
     bool setTransparency(Window wnd, unsigned char alpha)
@@ -151,4 +204,3 @@ int main()
 
     return 0;
 }
-
