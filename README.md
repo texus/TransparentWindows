@@ -18,7 +18,18 @@ Linux:
 
 Mac OS X:
 
+If you installed SFML manually (Frameworks):
+    
     clang++ Transparent.cpp Transparent.mm -framework sfml-graphics -framework sfml-window -framework sfml-system -framework Cocoa
+
+If you installed SFML via Homebrew:
+    
+    clang++ Transparent.cpp Transparent.mm \
+      -I$(brew --prefix sfml@2)/include \
+      -L$(brew --prefix sfml@2)/lib \
+      -lsfml-graphics -lsfml-window -lsfml-system \
+      -framework Cocoa \
+      -std=c++17
 
 
 Windows:
