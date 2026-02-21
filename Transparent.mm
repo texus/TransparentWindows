@@ -8,6 +8,9 @@
 }
 @end
 
+// While this functions will set a custom shape for the window, mouse events may not pass through
+// the clipped parts of the window to the windows behind it. If you want this, then you can
+// check out https://gist.github.com/iman-zamani/519e241916aeaa0c26e9f4787884f5bf
 bool setShape(sf::WindowHandle handle, const sf::Image& image)
 {
     NSWindow* wnd = (NSWindow*)handle;
